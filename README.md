@@ -36,8 +36,16 @@ pip-python install git+http://github.com/systemd/journal2gelf.git#egg=journal2ge
 Running as a service
 --------------------
 
-Copy and edit the included `examples/journal2gelf.service` to
-`/etc/systemd/system`.
+Create the file `/etc/systemd/system/journal2gelf.service` with the following content:
+
+    [Unit]
+    Description=Journald to GELF (graylog) log relay service
+    [Service]
+    ExecStart=/bin/journal2gelf -s localhost -p 12201 -t
+    Restart=on-failure
+    RestartSec=30
+    [Install]
+    WantedBy=multi-user.target
 
 Usage:
 ------
