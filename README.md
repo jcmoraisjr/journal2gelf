@@ -6,6 +6,8 @@ Graylog2 server as GELF messages.
 
 Tested on Python 2.7 and Fedora 17 (systemd-44-17) and Fedora 19 (systemd-204).
 
+[![Docker Repository on Quay](https://quay.io/repository/jcmoraisjr/journal2gelf/status "Docker Repository on Quay")](https://quay.io/repository/jcmoraisjr/journal2gelf)
+
 journalctl output format change
 -------------------------------
 
@@ -21,6 +23,10 @@ Dependencies:
 
 - graypy
 
+Usage from Docker image
+-----------------------
+
+    journalctl -o json -f | docker run -i quay.io/jcmoraisjr/journal2gelf --server <GELF> --port 12201
 
 Install
 -------
@@ -36,7 +42,29 @@ pip-python install git+http://github.com/systemd/journal2gelf.git#egg=journal2ge
 Running as a service
 --------------------
 
-Create the file `/etc/systemd/system/journal2gelf.service` with the following content:
+Create the file `/etc/systemd/system/journal2gelf.service` with the following content.
+
+If running as a Docker container:
+
+    [Unit]
+    Description=Journald to GELF (graylog) log relay service
+    After=docker.service
+    Requires=docker.service
+    [Service]
+    ExecStartPre=-/usr/bin/docker stop journal2gelf
+    ExecStartPre=-/usr/bin/docker rm journal2gelf
+    ExecStart=/bin/bash -c 'journalctl -o json -f | docker run \
+      --interactive \
+      --name journal2gelf \
+      quay.io/jcmoraisjr/journal2gelf:latest \
+        --server <GELF> \
+        --port 12201'
+    RestartSec=10s
+    Restart=always
+    [Install]
+    WantedBy=multi-user.target
+
+If installed in the host:
 
     [Unit]
     Description=Journald to GELF (graylog) log relay service
